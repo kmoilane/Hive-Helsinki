@@ -1,0 +1,4 @@
+With graphic session, type in su - <username> and give your password when asked. OR use login screen
+where you type your username and password...
+
+With ssh session, use command: 'ssh <username>@<ip-address>', and give password after that

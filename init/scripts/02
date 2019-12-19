@@ -1,0 +1,18 @@
+#!/bin/bash
+
+GR='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+BLD='\033[1m'
+NRM='\033[0m'
+
+echo -e "${RED}Enter the user you want to delete${NC}"
+read user
+
+if sudo userdel -fr $user 2> /dev/null ; then
+	echo -e "${GR}$user and $user:s home directory has been removed! :)${NC}"
+else
+	echo -e "${RED}${BLD}$user${RED} doesn't exist >:(\nTry again with an active user from the list below.\n"
+	cat /etc/passwd | grep 'home' | awk -F: '{print "\033[0;32m" $1 "\033[0m";}'
+fi
+#!/bin/bash $OUT

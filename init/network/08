@@ -1,0 +1,6 @@
+# nslookup slash16.org | grep 'NS-'
+# pick one of the ip addresses and run 
+# whois <that ip>
+# here you find more information about the provider which is:
+AWS (Amazon web services)
+

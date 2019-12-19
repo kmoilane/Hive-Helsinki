@@ -1,0 +1,2 @@
+sudo pkill <process name>
+sudo kill <pid>

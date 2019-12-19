@@ -1,0 +1,3 @@
+#c3r5p6.hive.fi.
+#to find it no matter what computer youre on, use command: 
+nslookup "$(ifconfig en0 | grep 'inet ' | awk '{print $2}')" | grep name | awk '{print $4}'

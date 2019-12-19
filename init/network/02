@@ -1,0 +1,4 @@
+echo '(a) '
+ifconfig en0 | grep broadcast | awk '{print $6}'
+echo '(b) '
+arp -a

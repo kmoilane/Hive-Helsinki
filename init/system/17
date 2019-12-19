@@ -1,0 +1,4 @@
+# if Bridged Adapter
+ssh <username>@<ip-address>
+#if NAT see host ip and port from port forwarding settings
+ssh <username>@<host-ip> -p <host port>

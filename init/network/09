@@ -1,0 +1,4 @@
+#nslookup 42.fr | grep 'Address: ' | awk '{print $2}'
+
+163.172.250.13
+163.172.250.12
