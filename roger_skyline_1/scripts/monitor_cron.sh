@@ -1,6 +1,6 @@
 #!/bin/bash
 
-stat -c '%y' /etc/crontab > /scripts/monitor_files/new
+sudo stat -c '%y' /etc/crontab > /scripts/monitor_files/new
 
 if cmp -s /scripts/monitor_files/orig /scripts/monitor_files/new ; then
 	rm -f /scripts/monitor_files/new
