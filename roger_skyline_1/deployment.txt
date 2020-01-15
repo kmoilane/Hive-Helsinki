@@ -126,27 +126,120 @@ PART 6 : SSH CONFIG
 
 PART 7: FIREWALL CONFIG
 
--without using ufw, use following commands to configure correct rules for required chains:
+-we are going to use ufw a.k.a uncomplicated firewall to setup our rules
+-first we deny all incoming by default and allow outgoing
 
-	sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-	sudo iptables -A INPUT -s 127.0.0.1 -j ACCEPT
-	sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-	sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-	sudo iptables -A INPUT -p tcp --dport <ssh-port> -j ACCEPT
-	sudo iptables -A INPUT -j DROP
+	sudo ufw default deny incoming
+	sudo ufw default allow outgoing
 
--now you only allow those connections coming to your computer and you can see them with following commands:
+-then we need to specify ports that we want incoming traffic as well
 
-	sudo iptables -L
-	sudo iptables -S
-	sudo iptables -L --line-numbers
+	sudo ufw allow 55155
+	sudo ufw allow 80
+	sudo ufw allow 443
 
--to save the rules and have them active after reboot, we have to install persistent
+-now to enable and reload ufw we use:
+	
+	sudo ufw enable
+	sudo ufw reload
 
-	sudo apt-get install iptables-persistent
+-that's all we need for firewall
 
--hit enter till graphical window closes and now if you make new changes to iptable, u need to enter:
+PART 8: DOS PROTECTION / FAIL2BAN
 
-	sudo iptables-save > /etc/iptables/rules.v4
+-this was a bit tricky part, since I used lubuntu first but then switched to debian because lubuntu didn't work with these rules
+-we are using fail2ban 
+-first we protect our ssh:
+	*we need to add following to a file /etc/fail2ban/jail.d/defaults-debian.local
+
+		[sshd]
+		enabled = true
+		port	= 55155
+		filter	= sshd
+		logpath	= %(sshd_log)s
+		maxretry = 5
+		bantime = 300
+		banaction = iptables-multiport
+
+		[http-get-dos]
+		enabled = true
+		port	= http,https
+		filter	= http-get-dos
+		logpath	= /var/log/apache2/access.log
+		maxretry = 50
+		findtime = 120
+		bantime =  60
+		action	= iptables[name=HTTP, port=http, protocol=tcp]
+
+	*next what we need to do is create filter for http-get-dos, so:
+
+		sudo vi /etc/fail2ban/filter.d/http-get-dos.conf
+		
+	*in there u need to type following:
+
+		[Definition]
+		failregex = ^<HOST> -.*"(GET|POST).*
+		ignoreregex =
+
+	*after that we just need to retsart fail2ban
+
+		sudo systemctl restart fail2ban
+
+-to see that jails are enabled you can use following command:
+
+	sudo fail2ban-client status
 
 
+PART 9: PORTSENTRY TO PROTECT FROM PORT SCANS
+
+-before enabling portsentry, lets configurate it first
+-in /etc/defaults/portsentry file change following lines:
+
+	TCP_MODE="tcp"
+	UDP_MODE="udp"
+
+-to look like
+
+	TCP_MODE="atcp"
+	UDP_MODE="audp"
+
+-then in /etc/portsentry/portsentry.conf change following lines accordingly:
+
+	BLOCK_UDP="0" > BLOCK_UDP="1"
+	BLOCK_TCP="0" > BLOCK_TCP="1"
+
+-comment all other lines that begin with: "KILL_ROUTE" but uncomment the following:
+
+	KILL_ROUTE="/sbin/iptables -I INPUT -s $TARGET$ -j DROP"
+
+-to verify that this is the casse use this:
+
+	cat portsentry.conf | grep KILL_ROUTE | grep -v "#"
+
+-now we can restart portsentry
+
+	sudo systemctl restart portsentry
+
+-to see the list of banned IP:s you can use this command and look the ones that has source IP:
+
+	iptables -L -n -v | grep DROP
+
+-after banning an IP it also might go to /etc/hosts.deny and it will block all connections from that IP
+
+PART 10: STOP USELESS SERVICES
+
+-to list all enabled services a.k.a services that run on boot use:
+
+	systemctl list-unit-files --type=service --state=enabled
+
+-if you didn't install desktop environment, web or print servers, you can disable the following:
+
+	sudo systemctl disable console-setup.service
+	sudo systemctl disable keyboard-setup.service
+
+-rest of the services are used or are useful, to have things up to date and to get information that we want to see like logs
+
+PART 11: UPDATE SCRIPT
+
+-we have to update and upgrade our packages once a week at 04am and everytime we boot our VM
+-we also have to collect these logs in /var/log/update
