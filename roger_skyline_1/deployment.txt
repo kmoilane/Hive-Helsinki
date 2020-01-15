@@ -1,7 +1,7 @@
 STEP 1: VIRTUALBOX
 
 -install virtualbox
--download linux distro, (I'm using lubuntu 16.04 for this project)
+-download linux distro, (I'm using debian 10.2.0 for this project)
 -make new virtual machine and give it a 8GB virtual disk in your goinfre folder
 -set network adapter to bridged from settings
 
@@ -12,33 +12,45 @@ STEP 2: INSTALL LINUX
 -from boot menu choose to install
 -follow instruction until you get to disk partioning part
 	*choose manual partioning
-	*create a ~300MB logical partition for /boot with boot flag
-	*create a ~1024MB primary partition and slect swap area
-	*create a ~4.2GB primary partition for / a.k.a root
-	*rest of the memory you can give to primary /home
+	*create a ~4.6GB primary partition for / a.k.a root
+	*create a ~1024MB logical partition and slect swap area
+	*rest of the memory you can give to logical /home
 -finish the installation
 
 STEP 3: SUDO USER
 
+-for me sudo wasn't installed so install it first by logging to root and then install package
+
+	su (after that type root's password when asked)
+	apt-get install sudo 
+
 -if you didn't make user in installation, and you're on the root user, you can create a new user with following command:
+
 	adduser <newuser>
 	<new password>
 	<new password again>
+
 -if you want to fill rest information that's up to you, but it's not mandatory
 -for sudo rights run the following command
-	usermod -aG sudo <newuser>
+
+	sudo usermod -aG sudo <newuser>
+
 -now you can go to that user and complete the rest of the deployment with that user, with following command:
+
 	su <newuser>
 	<newusers password>
 
 STEP 4: COUPLE INSTALLATIONS
 
 -before we start installing other packages, let's update all current packages with following:
-	sudo apt-get update
-	sudo apt-get upgrade
+
+	sudo apt-get update -y
+	sudo apt-get upgrade -y
+
 -now that everything is up to date we can get additional softwares
 -let's intstall some packages, some of these may already be installed
-	sudo apt-get install vim ssh apache2 fail2ban -y
+
+	sudo apt-get install vim ssh apache2 fail2ban portsentry ufw mailutils postfix -y
 
 STEP 5: STATIC IP
 
@@ -52,32 +64,27 @@ STEP 5: STATIC IP
 	# The primary network interface
 	auto ens33
 	iface ens33 inet static
-        address 10.1x.y.z
-		# where x is your cluster, y is number bigger than rows and <=255, z is available host on /30
+        address 10.13.13.13
         netmask 255.255.255.252
-		# this is netmask for /30
-        network 10.1.x.y.z - 1/2
-		# this is otherwise same as address but last number is z - 1 if you address is first available host on that network.
-		# if your address is second available host then it's z - 2
-        broadcast 10.1x.y.z + 2/1
-		# this one also is based on your chosen address and if your host ip is 1st then it's z + 2
-		# and if it's the 2nd host, then it's + 1
-        gateway 10.1x.254.254
-		# our routers gateway, x is your cluster
+        network 10.13.13.12
+        broadcast 10.13.13.15
+        gateway 10.13.254.254
 
 -hit 'esc :x' and then 'enter' to save if you're using vim
 -reset ur network with:
+
 	sudo systemctl restart networking
+
 -next edit /etc/hosts
 -change the 127.0.1.1 to your new ip
 -firts lines should look something like this:
 
 	127.0.0.1		localhost
-	10.1x.y.z		<ur hostname>
+	10.13.13.13		<ur hostname>
 
--then just reboot your system
+-then just restart your networking
 
-	sudo systemctl reboot
+	sudo systemctl restart networking
 
 PART 6 : SSH CONFIG
 
@@ -105,7 +112,7 @@ PART 6 : SSH CONFIG
 
 	ssh-copy-id <VM-username>@<VM-ip> -p <ur-ssh-port>
 	for example mine was:
-	ssh-copy-id kmoilane@10.13.200.233 -p 49999
+	ssh-copy-id kmoilane@10.13.13.13 -p 55155
 
 -type "yes" and hit enter
 -now type your VM users password and hit enter
@@ -161,14 +168,22 @@ PART 8: DOS PROTECTION / FAIL2BAN
 		bantime = 300
 		banaction = iptables-multiport
 
+		[portscan]
+		enabled = true
+		filter	= portscan
+		logpath = /var/log/syslog
+		bantime = 300
+		findtime = 300
+		maxretry = 1
+
 		[http-get-dos]
 		enabled = true
 		port	= http,https
 		filter	= http-get-dos
 		logpath	= /var/log/apache2/access.log
 		maxretry = 50
-		findtime = 120
-		bantime =  60
+		findtime = 300
+		bantime =  300
 		action	= iptables[name=HTTP, port=http, protocol=tcp]
 
 	*next what we need to do is create filter for http-get-dos, so:
@@ -179,6 +194,14 @@ PART 8: DOS PROTECTION / FAIL2BAN
 
 		[Definition]
 		failregex = ^<HOST> -.*"(GET|POST).*
+		ignoreregex =
+
+	*and for portscan we create 
+	
+		sudo vi /etc/fail2ban/filter.d/portscan.conf
+
+		[Definition}
+		failregex = UFW BLOCK.* SRC=<HOST>
 		ignoreregex =
 
 	*after that we just need to retsart fail2ban
@@ -243,3 +266,82 @@ PART 11: UPDATE SCRIPT
 
 -we have to update and upgrade our packages once a week at 04am and everytime we boot our VM
 -we also have to collect these logs in /var/log/update
+-for this we just create script which redirects output to /var/log/update_script.log
+
+	sudo apt-get update -y >> /var/log/update_script.log
+	sudo apt-get upgrade -y >> /var/log/update_script.log
+
+-then we need to modify /etc/crontab or crontab -e with following lines:
+
+	@reboot		root	/scripts/update_script.sh
+	0 4 * * 1	root	/scripts/update_script.sh
+
+-that's it
+
+PART 12: MONITOR /ETC/CRONTAB
+
+-we need to make script that runs every midnight and sends email to root if /etc/crontab file is been modified
+-I decided to monitor last modified timestamp of /etc/crontab
+-to get timestamp into file which I can compare later I  use:
+	
+	sudo stat -c '%y' /etc/crontab > /scripts/monitor_files/old
+
+-after that my script looks like this:
+
+#!/bin/bash
+
+sudo stat -c '%y' /etc/crontab > /scripts/monitor_files/new
+
+if cmp -s /scripts/monitor_files/orig /scripts/monitor_files/new ; then
+	rm -f /scripts/monitor_files/new
+else
+	echo "automatic message when /etc/crontab is modified" | mail -s "crontab modified" root
+	cp -f /scripts/monitor_files/new /scripts/monitor_files/orig
+	rm -f /scripts/monitor_files/new
+fi
+
+-basically we use cmp command to compare the old timestamp and the new one, and if it's different we send email and replace old with new 
+ for the next execution of this script
+-if the files are same we just delete the new one
+-to make this cronjob every midnight modify /etc/crontab with following line:
+
+	0 0 * * *	root	/scripts/monitor_cron.sh
+
+
+PART 13: SSL
+
+-run following commands to get ssl certificate and redirect from http to https:
+
+	sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfs	igned.crt
+
+	*common name is your ip !!
+
+	echo 'SSLCipherSuite EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH
+	SSLProtocol All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+	SSLHonorCipherOrder On
+	# Disable preloading HSTS for now.  You can use the commented out header line that includes
+	# the "preload" directive if you understand the implications.
+	# Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+	Header always set X-Frame-Options DENY
+	Header always set X-Content-Type-Options nosniff
+	# Requires Apache >= 2.4
+	SSLCompression off
+	SSLUseStapling on
+	SSLStaplingCache "shmcb:logs/stapling-cache(150000)"
+	# Requires Apache >= 2.4.11
+	SSLSessionTickets Off' | sudo tee /etc/apache2/conf-available/ssl-params.conf
+
+	sudo cp /etc/apache2/sites-available/default-ssl.conf /etc/apache2/sites-available/default-ssl.conf.bak
+	sudo sed -i 's/ServerAdmin webmaster@localhost/ServerAdmin kmoilane@student.hive.fi/g' /etc/apache2/sites-available/default-ssl.conf
+	sudo sed -i	'4i\		ServerName 10.13.13.13' /etc/apache2/sites-available/default-ssl.conf
+	sudo sed -i 's/\/etc\/ssl\/certs\/ssl-cert-snakeoil.pem/\/etc\/ssl\/certs\/apache-selfsigned.crt/g' /etc/apache2/sites-available/default	-ssl.conf
+	sudo sed -i 's/SSLCertificateKeyFile \/etc\/ssl\/private\/ssl-cert-snakeoil.key/SSLCertificateKeyFile	\/etc\/ssl\/private\/apache-self	signed.key/g' /etc/apache2/sites-available/default-ssl.conf
+	sudo sed -i '13i\\n\tRedirect permanent "\/" "https:\/\/10.13.13.13\/"' /etc/apache2/sites-available/000-default.conf
+	sudo a2enmod ssl >> /dev/null
+	sudo a2enmod headers >> /dev/null
+	sudo a2ensite default-ssl >> /dev/null
+	sudo a2enconf ssl-params >> /dev/null
+	sudo apache2ctl configtest
+	sudo systemctl restart apache2
+
+
