@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Kmoilane-Roger-Skyline-1</title>
+<style type="text/css">
+p {
+	font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+	font-size: xx-large;
+	color: #FFF000;
+	width: 400px;
+	padding: 10px;
+}
+#kirupaLogo {
+	box-shadow: 5px 5px 25px -2px #333;
+}
+body {
+	background-color: #2A2A2A;
+	margin:	auto;
+	max-width: 500px;
+}
+h4 {
+	font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+	font-size: medium;
+	color: #999999;
+	font-weight: normal;
+}
+</style>
+</head>
+<body>
+<p>Congratz, here is your meme:</p>
+<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img id="randomImage" alt="The great wall of Merlin!" /> <br />
+<br />
+<h4>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ( you can refresh this page to see a different image )</h4>
+<script>
+
+function getRandomImage() {
+	var images = ['memes/auth_keys.png', 'memes/ddosiq.jpg', 'memes/exit_ssh.png', 'memes/hackerman.png', 'memes/improvement.jpeg', 'memes/iptablesdrop.png', 'memes/iptablesmistake.jpeg', 'memes/linuxdarkside.jpg', 'memes/longtime_dos.jpg', 'memes/networkinter.jpeg', 'memes/reboot.jpg', 'memes/staticip.jpeg'];
+	var image = images[Math.floor(Math.random()*images.length)];
+
+	return image;
+}
+
+function displayRandomImage() {
+	var htmlImage = document.getElementById("randomImage");
+	htmlImage.src = getRandomImage();
+}
+displayRandomImage();
+
+</script>
+</body>
+</html>
