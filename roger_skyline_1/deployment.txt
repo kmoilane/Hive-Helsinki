@@ -1,0 +1,152 @@
+STEP 1: VIRTUALBOX
+
+-install virtualbox
+-download linux distro, (I'm using lubuntu 16.04 for this project)
+-make new virtual machine and give it a 8GB virtual disk in your goinfre folder
+-set network adapter to bridged from settings
+
+STEP 2: INSTALL LINUX
+
+-start your new virtual machine
+-choose the disk image of your linux distro
+-from boot menu choose to install
+-follow instruction until you get to disk partioning part
+	*choose manual partioning
+	*create a ~300MB logical partition for /boot with boot flag
+	*create a ~1024MB primary partition and slect swap area
+	*create a ~4.2GB primary partition for / a.k.a root
+	*rest of the memory you can give to primary /home
+-finish the installation
+
+STEP 3: SUDO USER
+
+-if you didn't make user in installation, and you're on the root user, you can create a new user with following command:
+	adduser <newuser>
+	<new password>
+	<new password again>
+-if you want to fill rest information that's up to you, but it's not mandatory
+-for sudo rights run the following command
+	usermod -aG sudo <newuser>
+-now you can go to that user and complete the rest of the deployment with that user, with following command:
+	su <newuser>
+	<newusers password>
+
+STEP 4: COUPLE INSTALLATIONS
+
+-before we start installing other packages, let's update all current packages with following:
+	sudo apt-get update
+	sudo apt-get upgrade
+-now that everything is up to date we can get additional softwares
+-let's intstall some packages, some of these may already be installed
+	sudo apt-get install vim ssh apache2 fail2ban -y
+
+STEP 5: STATIC IP
+
+-run the following command to get your primary network interface name and current ip
+	ip a
+-it's usually after number 2, since number 1 is mostlikely lo=loopback, so look for 2 which for me is enp0s3
+-next we set the static ip and netmask /30
+	sudo vim /etc/network/interfaces
+- leave the lo configurations as they are, below them add the following lines
+	
+	# The primary network interface
+	auto ens33
+	iface ens33 inet static
+        address 10.1x.y.z
+		# where x is your cluster, y is number bigger than rows and <=255, z is available host on /30
+        netmask 255.255.255.252
+		# this is netmask for /30
+        network 10.1.x.y.z - 1/2
+		# this is otherwise same as address but last number is z - 1 if you address is first available host on that network.
+		# if your address is second available host then it's z - 2
+        broadcast 10.1x.y.z + 2/1
+		# this one also is based on your chosen address and if your host ip is 1st then it's z + 2
+		# and if it's the 2nd host, then it's + 1
+        gateway 10.1x.254.254
+		# our routers gateway, x is your cluster
+
+-hit 'esc :x' and then 'enter' to save if you're using vim
+-reset ur network with:
+	sudo systemctl restart networking
+-next edit /etc/hosts
+-change the 127.0.1.1 to your new ip
+-firts lines should look something like this:
+
+	127.0.0.1		localhost
+	10.1x.y.z		<ur hostname>
+
+-then just reboot your system
+
+	sudo systemctl reboot
+
+PART 6 : SSH CONFIG
+
+-change port to 49152-65535 (these are free to customize ports that aren't used by default by any service etc.)
+-disable root login
+
+	sudo vi /etc/ssh/sshd_config
+
+-with vim you can press "esc" and type "/Port 22" hit enter to find correct line
+-now change 22 to port of your choice
+-with /PermitRootLogin you can find the correct line
+-change "yes" to "no"
+-save and exit, then restart ssh:
+
+	sudo systemctl restart ssh
+
+-now we make key-pair, so we don't need password login
+-go to your MAC:s terminal and run command:
+
+	ssh-keygen
+
+-if you wan't to name your key to other than default remember to include path
+-if you wan't to add passphrase you can do it here, it's kind of password for your pubkey
+-after generating this key, you will copy it to your VM server with following command:
+
+	ssh-copy-id <VM-username>@<VM-ip> -p <ur-ssh-port>
+	for example mine was:
+	ssh-copy-id kmoilane@10.13.200.233 -p 49999
+
+-type "yes" and hit enter
+-now type your VM users password and hit enter
+-from now on you can connect to your vm with public key with following command
+
+	ssh -p <ur-ssh-port> <VM-username>@<VM-ip>
+
+-do that and check your /home/<VM-username>/.ssh/authorized_keys file, there should be one key now.
+
+	vi /home/kmoilane/.ssh/authorized_keys
+
+-no we can disable the password authentication since SSH access HAS TO be done with pub. keys
+
+	sudo vim /etc/ssh/sshd_config
+
+-find "#PasswordAuthentication yes" and change it to "PasswordAuthentication no", so basically you uncomment it and disable it
+-save, exit and restart sshd
+
+PART 7: FIREWALL CONFIG
+
+-without using ufw, use following commands to configure correct rules for required chains:
+
+	sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+	sudo iptables -A INPUT -s 127.0.0.1 -j ACCEPT
+	sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+	sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+	sudo iptables -A INPUT -p tcp --dport <ssh-port> -j ACCEPT
+	sudo iptables -A INPUT -j DROP
+
+-now you only allow those connections coming to your computer and you can see them with following commands:
+
+	sudo iptables -L
+	sudo iptables -S
+	sudo iptables -L --line-numbers
+
+-to save the rules and have them active after reboot, we have to install persistent
+
+	sudo apt-get install iptables-persistent
+
+-hit enter till graphical window closes and now if you make new changes to iptable, u need to enter:
+
+	sudo iptables-save > /etc/iptables/rules.v4
+
+
