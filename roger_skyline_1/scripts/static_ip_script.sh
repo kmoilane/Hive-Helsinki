@@ -16,4 +16,8 @@ iface enp0s3 inet static
 	netmask 255.255.255.252
 	network 10.13.13.12
 	broadcast 10.13.13.15
-	gateway 10.13.254.254' | sudo tee /etc/network/interfaces
+	gateway 10.13.254.254' | sudo tee /etc/network/interfaces >> /dev/null
+
+sudo systemctl restart networking
+echo "your ip address is now:"
+hostname -I

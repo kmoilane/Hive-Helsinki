@@ -1,11 +1,11 @@
 #!/bin/bash
 
-stat -c '%y' /etc/crontab > /scripts/cronmon/new
+stat -c '%y' /etc/crontab > /scripts/monitor_files/new
 
-if cmp -s /scripts/cronmon/orig /scripts/cronmon/new ; then
-	rm -f /scripts/cronmon/new
+if cmp -s /scripts/monitor_files/orig /scripts/monitor_files/new ; then
+	rm -f /scripts/monitor_files/new
 else
 	echo "automatic message when /etc/crontab is modified" | mail -s "crontab modified" root
-	cp -f /scripts/cronmon/new /scripts/cronmon/orig
-	rm -f /scripts/cronmon/new
+	cp -f /scripts/monitor_files/new /scripts/monitor_files/orig
+	rm -f /scripts/monitor_files/new
 fi
