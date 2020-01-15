@@ -24,4 +24,4 @@ failregex = ^<HOST> -.*"(GET|POST).*
 ignoreregex =' | sudo tee /etc/fail2ban/filter.d/http-get-dos.conf >> /dev/null
 
 sudo systemctl restart fail2ban
-sudo systemctl status fail2ban
+sudo fail2ban-client status
