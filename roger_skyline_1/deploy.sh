@@ -37,10 +37,10 @@ after you have successfully done that, press 'enter' to move on with deployment!
 read -p "Press enter to continue"
 sudo scripts/ssh_setup2.sh
 sudo scripts/ufw_setup.sh
-sudo scripts/dos_script.sh
+sudo scripts/dos_script.sh $sshport
 sudo scripts/portsentry_setup.sh
 sudo scripts/stop_services.sh
 sudo scripts/mail_setup.sh
 sudo scripts/script4scripts.sh
-sudo scripts/ssl_script.sh "$ip"
+#sudo scripts/ssl_script.sh "$ip"
 echo "Deployment Done"
