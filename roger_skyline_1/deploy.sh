@@ -36,7 +36,7 @@ ssh-copy-id -p $sshport <username>@$ip
 after you have successfully done that, press 'enter' to move on with deployment!"
 read -p "Press enter to continue"
 sudo scripts/ssh_setup2.sh
-sudo scripts/ufw_setup.sh
+sudo scripts/ufw_setup.sh $sshport
 sudo scripts/dos_script.sh $sshport
 sudo scripts/portsentry_setup.sh
 sudo scripts/stop_services.sh
