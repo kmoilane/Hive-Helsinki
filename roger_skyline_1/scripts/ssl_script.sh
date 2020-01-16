@@ -22,7 +22,7 @@ sudo sed -i "s/ServerAdmin webmaster@localhost/ServerAdmin kmoilane@student.hive
 sudo sed -i	"4i\		ServerName $1" /etc/apache2/sites-available/default-ssl.conf
 sudo sed -i "s/\/etc\/ssl\/certs\/ssl-cert-snakeoil.pem/\/etc\/ssl\/certs\/apache-selfsigned.crt/g" /etc/apache2/sites-available/default-ssl.conf
 sudo sed -i "s/SSLCertificateKeyFile \/etc\/ssl\/private\/ssl-cert-snakeoil.key/SSLCertificateKeyFile	\/etc\/ssl\/private\/apache-selfsigned.key/g" /etc/apache2/sites-available/default-ssl.conf
-sudo sed -i "13i\\n\tRedirect permanent "\/" "https:\/\/$1\/"" /etc/apache2/sites-available/000-default.conf
+sudo sed -i "13i\\n\tRedirect permanent \"\/\" \"https:\/\/$1\/\"" /etc/apache2/sites-available/000-default.conf
 sudo a2enmod ssl >> /dev/null
 sudo a2enmod headers >> /dev/null
 sudo a2ensite default-ssl >> /dev/null
