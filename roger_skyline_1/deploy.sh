@@ -42,5 +42,5 @@ sudo scripts/portsentry_setup.sh
 sudo scripts/stop_services.sh
 sudo scripts/mail_setup.sh
 sudo scripts/script4scripts.sh
-#sudo scripts/ssl_script.sh "$ip"
+sudo scripts/ssl_script.sh "$ip"
 echo "Deployment Done"
