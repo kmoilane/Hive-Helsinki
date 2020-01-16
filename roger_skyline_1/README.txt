@@ -22,6 +22,7 @@ then you can go to Hive-Helsinki/roger_skyline_1/
 
 	cd /Hive-Helsinki/roger_skyline_1/
 
+STEP2:
 now the first thing we do is install all required packages and give your user sudo rights
 
 to do this execute "before_deploy.sh"
@@ -32,9 +33,10 @@ after installing everything you can now switch to your non root user
 
 	su - <user>
 
-now we can get everything else done by executing deploy.sh script
+STEP3:
+now we can get everything else done by executing deploy.sh script as a sudo
 
-	./deploy.sh
+	sudo ./deploy.sh
 
 it will prompt you your ip and netmask and also the ssh port you want to have
 
