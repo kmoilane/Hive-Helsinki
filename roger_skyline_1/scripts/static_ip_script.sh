@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo '# This file describes the network interfaces available on your system
+echo "# This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
 source /etc/network/interfaces.d/*
@@ -12,12 +12,16 @@ iface lo inet loopback
 # The primary network interface
 auto enp0s3
 iface enp0s3 inet static
-	address 10.13.13.13
-	netmask 255.255.255.252
-	network 10.13.13.12
-	broadcast 10.13.13.15
-	gateway 10.13.254.254' | sudo tee /etc/network/interfaces >> /dev/null
+	address $1
+	netmask $2
+	network $3
+	broadcast $4
+	gateway $5" | sudo tee /etc/network/interfaces >> /dev/null
 
 sudo systemctl restart networking
 echo "your ip address is now:"
 hostname -I
+echo "netmask: $2
+network: $3
+broadcast: $4
+gateway: $5"
