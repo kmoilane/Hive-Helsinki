@@ -18,7 +18,7 @@ after installing git, clone this repo to your root ( / ) using:
 
 	git clone https://github.com/Karrzzaa/Hive-Helsinki.git
 
-then you can go to Hive-Helsinki/roger_skyline_1/
+then you can go to /Hive-Helsinki/roger_skyline_1/
 
 	cd /Hive-Helsinki/roger_skyline_1/
 
