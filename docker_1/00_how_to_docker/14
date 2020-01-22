@@ -1,0 +1,5 @@
+docker run -d --name lair -p 8080:80 --link spawning-pool wordpress
+# to check it out:
+# docker-machine ip Char
+# <that ip>:8080
+# this should direct you to wordpress setup-config
