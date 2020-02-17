@@ -1,6 +1,10 @@
 # Roger_Skyline_1
 
-This is my automation for the roger-skyline-1
+Roger_skyline_1 project dives to the world of linux and system/network management. I had to host a webserver in linux 
+distro of my choice, which was debian-10. I had to secure open ports that I needed for this project, set DOS protection,
+set static ip and disable dhcp, configure ssh settings, and bunch of other stuff which can be seen in deployment.txt.
+
+# This is my automation for the roger-skyline-1
 
 To do this correctly, use debian-10.2.0-amd64-netinst.iso
 set network adapter into bridged-adapter
