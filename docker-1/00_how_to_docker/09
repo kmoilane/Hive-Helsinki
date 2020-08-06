@@ -1,0 +1,9 @@
+#first we need to get to debian shell, so you can do that with following command:
+#	docker run -it --rm debian
+#this will also delete the container after you exit
+apt-get update && apt-get upgrade -y && apt-get install build-essential git -y
+
+#to test this copy following:
+#	echo -e '#include <stdio.h>\n\nint main(void)\n{\n\tprintf("hello world\\n");\n\treturn(0);\n}' > /hello.c
+#	gcc -o hello hello.c
+#	./hello

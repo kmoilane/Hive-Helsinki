@@ -1,0 +1,3 @@
+# For some reason this sometimes doesn't work when bashed, so copy paste it and hit enter.
+
+eval $(docker-machine env Char)
