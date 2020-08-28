@@ -1,0 +1,8 @@
+# First to see the variables you need to use the following command:
+#
+# docker-machine env Char
+
+# To actually set the variables and to get "docker ps" to work, run the following command
+# by copy pasting, since bashing doesn't work every time (don't know why).
+
+eval $(docker-machine env Char)
