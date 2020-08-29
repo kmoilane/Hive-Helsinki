@@ -6,11 +6,12 @@
 /*   By: kmoilane <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/08/28 17:51:37 by kmoilane          #+#    #+#             */
-/*   Updated: 2020/08/28 20:47:42 by kmoilane         ###   ########.fr       */
+/*   Updated: 2020/08/29 17:52:02 by karrzzaa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
+#include <stdio.h>
 
 void	negative(t_fdf *vars)
 {
@@ -21,7 +22,6 @@ void	negative(t_fdf *vars)
 	err = vars->dy / 2;
 	while (i < vars->dy)
 	{
-		vars->y0 += vars->y;
 		err += vars->dx;
 		if (err > vars->dy)
 		{
@@ -30,6 +30,7 @@ void	negative(t_fdf *vars)
 		}
 		mlx_pixel_put(vars->mlx_ptr, vars->win_ptr,
 				vars->x0, vars->y0, vars->color);
+		vars->y0 += vars->y;
 		i++;
 	}
 }
@@ -43,7 +44,6 @@ void	positive(t_fdf *vars)
 	err = vars->dx / 2;
 	while (i < vars->dx)
 	{
-		vars->x0 += vars->x;
 		err += vars->dy;
 		if (err > vars->dx)
 		{
@@ -52,6 +52,7 @@ void	positive(t_fdf *vars)
 		}
 		mlx_pixel_put(vars->mlx_ptr, vars->win_ptr, vars->x0,
 				vars->y0, vars->color);
+		vars->x0 += vars->x;
 		i++;
 	}
 }
@@ -74,7 +75,6 @@ void	pixels(t_fdf *vars)
 			vars->x0, vars->y0, vars->color);
 	mlx_pixel_put(vars->mlx_ptr, vars->win_ptr,
 			vars->x1, vars->y1, vars->color);
-
 }
 
 void	draw_all_y(t_fdf *vars)
