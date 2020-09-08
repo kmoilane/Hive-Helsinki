@@ -65,9 +65,9 @@ void	draw_line(t_fdf *vars, t_draw coords)
 	vars->z0 = vars->map[coords.y0][coords.x0] * vars->altitude;
 	vars->z1 = vars->map[coords.y1][coords.x1] * vars->altitude;
 	vars->x0 = coords.x0 * vars->zoom;
-	vars->x1 = coords.x1 * vars->zoom;;
-	vars->y0 = coords.y0 * vars->zoom;;
-	vars->y1 = coords.y1 * vars->zoom;;
+	vars->x1 = coords.x1 * vars->zoom;
+	vars->y0 = coords.y0 * vars->zoom;
+	vars->y1 = coords.y1 * vars->zoom;
 	if (vars->pers == 'I')
 	{
 		isometric(vars, 1);
