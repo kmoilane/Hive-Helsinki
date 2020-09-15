@@ -6,13 +6,13 @@
 /*   By: kmoilane <kmoilane@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/02/17 20:04:58 by kmoilane          #+#    #+#             */
-/*   Updated: 2020/02/17 20:05:25 by kmoilane         ###   ########.fr       */
+/*   Updated: 2020/09/03 19:11:48 by kmoilane         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int	ft_wcnt(char const *s, char c)
+int		ft_wcnt(char const *s, char c)
 {
 	int	count;
 

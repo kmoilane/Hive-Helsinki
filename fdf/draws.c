@@ -5,122 +5,115 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: kmoilane <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/08/28 17:51:37 by kmoilane          #+#    #+#             */
-/*   Updated: 2020/08/29 17:52:02 by karrzzaa         ###   ########.fr       */
+/*   Created: 2020/09/02 16:09:00 by kmoilane          #+#    #+#             */
+/*   Updated: 2020/09/03 19:56:42 by kmoilane         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
-#include <stdio.h>
 
-void	negative(t_fdf *vars)
+void	isometric(t_fdf *vars, int stage)
 {
-	int	err;
-	int	i;
+	int	prev_x;
+	int	prev_y;
 
-	i = 0;
-	err = vars->dy / 2;
-	while (i < vars->dy)
+	if (stage == 1)
 	{
-		err += vars->dx;
-		if (err > vars->dy)
-		{
-			err -= vars->dy;
-			vars->x0 += vars->x;
-		}
-		mlx_pixel_put(vars->mlx_ptr, vars->win_ptr,
-				vars->x0, vars->y0, vars->color);
-		vars->y0 += vars->y;
-		i++;
+		prev_x = vars->x0;
+		prev_y = vars->y0;
+		vars->x0 = (prev_x - prev_y) * cos(0.523599);
+		vars->y0 = -(vars->z0) + (prev_x + prev_y) * sin(0.523599);
+	}
+	else if (stage == 2)
+	{
+		prev_x = vars->x1;
+		prev_y = vars->y1;
+		vars->x1 = (prev_x - prev_y) * cos(0.523599);
+		vars->y1 = -(vars->z1) + (prev_x + prev_y) * sin(0.523599);
 	}
 }
 
-void	positive(t_fdf *vars)
+void	draw_pixel(t_fdf *vars, t_draw coords)
 {
-	int	err;
-	int	i;
-
-	i = 0;
-	err = vars->dx / 2;
-	while (i < vars->dx)
+	vars->dx = abs(coords.x1 - coords.x0);
+	vars->dy = -abs(coords.y1 - coords.y0);
+	vars->x_dir = (coords.x0 < coords.x1) ? 1 : -1;
+	vars->y_dir = (coords.y0 < coords.y1) ? 1 : -1;
+	vars->err = vars->dx + vars->dy;
+	while (1)
 	{
-		err += vars->dy;
-		if (err > vars->dx)
+		mlx_pixel_put(vars->mlx, vars->win, coords.x0 + vars->view_x, coords.y0
+				+ vars->view_y, vars->clr);
+		if (coords.x0 == coords.x1 && coords.y0 == coords.y1)
+			break ;
+		vars->err_temp = 2 * vars->err;
+		if (vars->err_temp >= vars->dy)
 		{
-			err -= vars->dx;
-			vars->y0 += vars->y;
+			vars->err += vars->dy;
+			coords.x0 += vars->x_dir;
 		}
-		mlx_pixel_put(vars->mlx_ptr, vars->win_ptr, vars->x0,
-				vars->y0, vars->color);
-		vars->x0 += vars->x;
-		i++;
+		if (vars->err_temp <= vars->dx)
+		{
+			vars->err += vars->dx;
+			coords.y0 += vars->y_dir;
+		}
 	}
 }
 
-void	pixels(t_fdf *vars)
+void	draw_line(t_fdf *vars, t_draw coords)
 {
-	vars->x = (vars->x1 > vars->x0) ? 1 : -1;
-	vars->y = (vars->y1 > vars->y0) ? 1 : -1;
-	vars->dx = abs(vars->x1 - vars->x0);
-	vars->dy = abs(vars->y1 - vars->y0);
-	if (vars->dx > vars->dy)
+	vars->z0 = vars->map[coords.y0][coords.x0] * vars->altitude;
+	vars->z1 = vars->map[coords.y1][coords.x1] * vars->altitude;
+	vars->x0 = coords.x0 * vars->zoom;
+	vars->x1 = coords.x1 * vars->zoom;
+	vars->y0 = coords.y0 * vars->zoom;
+	vars->y1 = coords.y1 * vars->zoom;
+	if (vars->pers == 'I')
 	{
-		positive(vars);
+		isometric(vars, 1);
+		isometric(vars, 2);
 	}
-	else
-	{
-		negative(vars);
-	}
-	mlx_pixel_put(vars->mlx_ptr, vars->win_ptr,
-			vars->x0, vars->y0, vars->color);
-	mlx_pixel_put(vars->mlx_ptr, vars->win_ptr,
-			vars->x1, vars->y1, vars->color);
+	coords.x0 = vars->x0;
+	coords.y0 = vars->y0;
+	coords.x1 = vars->x1;
+	coords.y1 = vars->y1;
+	draw_pixel(vars, coords);
 }
 
-void	draw_all_y(t_fdf *vars)
+void	fix_coordinates(t_fdf *vars, int x, int y)
 {
-	int	i;
+	t_draw	coords;
 
-	i = 0;
-	vars->turn = 0;
-	while (i < vars->y_max - 1)
+	coords.x0 = x;
+	coords.y0 = y;
+	if (x < vars->x_max[0] - 1)
 	{
-		while (vars->turn < vars->x_max[i])
-		{
-			vars->x0 = vars->view_x + (vars->turn - i) * vars->x_size;
-			vars->y0 = vars->view_y + (vars->turn + i) * vars->y_size -
-				(vars->map[i][vars->turn] * vars->z);
-			vars->x1 = vars->view_x + ((vars->turn) - (i + 1)) * vars->x_size;
-			vars->y1 = vars->view_y + ((vars->turn) + (i + 1)) * vars->y_size -
-				(vars->map[i + 1][vars->turn] * vars->z);
-			pixels(vars);
-			vars->turn++;
-		}
-		i++;
-		vars->turn = 0;
+		coords.x1 = x + 1;
+		coords.y1 = y;
+		draw_line(vars, coords);
+	}
+	if (y < vars->y_max - 1)
+	{
+		coords.x1 = x;
+		coords.y1 = y + 1;
+		draw_line(vars, coords);
 	}
 }
 
-void	draw_all_x(t_fdf *vars)
+void	draw_all(t_fdf *vars)
 {
-	int	i;
+	int	x;
+	int	y;
 
-	i = 0;
-	vars->turn = 0;
-	while (i < vars->y_max)
+	y = 0;
+	while (y < vars->y_max)
 	{
-		while (vars->turn < vars->x_max[i] - 1)
+		x = 0;
+		while (x < vars->x_max[0])
 		{
-			vars->x0 = vars->view_x + (vars->turn - i) * vars->x_size;
-			vars->y0 = vars->view_y + (vars->turn + i) * vars->y_size
-				- (vars->map[i][vars->turn] * vars->z);
-			vars->x1 = vars->view_x + ((vars->turn + 1) - i) * vars->x_size;
-			vars->y1 = vars->view_y + ((vars->turn + 1) + i) * vars->y_size
-				- (vars->map[i][vars->turn + 1] * vars->z);
-			pixels(vars);
-			vars->turn++;
+			fix_coordinates(vars, x, y);
+			x++;
 		}
-		i++;
-		vars->turn = 0;
+		y++;
 	}
 }

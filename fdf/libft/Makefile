@@ -6,7 +6,7 @@
 #    By: kmoilane <kmoilane@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/10/16 14:50:24 by kmoilane          #+#    #+#              #
-#    Updated: 2020/02/17 20:17:42 by kmoilane         ###   ########.fr        #
+#    Updated: 2020/09/03 16:45:37 by kmoilane         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -89,14 +89,14 @@ FLAGS = -Wall -Wextra -Werror
 all: $(NAME)
 
 $(NAME):
-	gcc $(FLAGS) -c $(SRCS) -I $(HEAD)
-	ar rc $(NAME) $(OBJS)
-	ranlib $(NAME)
+	@gcc $(FLAGS) -c $(SRCS) -I $(HEAD)
+	@ar rc $(NAME) $(OBJS)
+	@ranlib $(NAME)
 
 clean:
-	/bin/rm -f $(OBJS)
+	@/bin/rm -f $(OBJS)
 
 fclean: clean
-	/bin/rm -f $(NAME)
+	@/bin/rm -f $(NAME)
 
 re: fclean all
